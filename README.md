@@ -62,42 +62,43 @@ DeepSeek Harness（DSH）的**订阅用量面板**：侧边栏底部一个「用
 
 ## 安装
 
-三种方式等效，装完都只要刷新页面。**包本身不含任何绝对路径**：`package.json` 只声明
-`dsh.bundle.patch` 与 `dsh.client`，代码只引用 `node` 内置模块，换机器、换盘符都不用改。
+前置：一个带 web 服务的 DSH（桌面版，或 `dsh web`）。装完刷新页面（Ctrl/Cmd+R）
+让客户端半生效；宿主半由 DSH 的 Loader 自动重载。
 
-### A. 从 npm / GitHub（给其他人用）
+### 方式一：从 GitHub（推荐）
 
 ```bash
-dsh plugin add @unison777/dsh-usage-hub          # 发布到 npm 之后
-dsh plugin add github:unison777/dsh-usage-hub   # 或者直接吃 Git 仓库
+dsh plugin --profile desktop add github:unison777/dsh-usage-hub
 ```
 
-> 目前还没发布，所以下面的两种是「现在就能装」的方式。
+没有 CLI 的话，在 DSH 的 **设置 → 插件** 里用同一个 spec 安装。
 
-### B. 本机离线安装（这台机器当前的状态）
+### 方式二：从 npm（发布后）
 
-profile 里引用的是**打进 profile 自己目录**的 tarball，不指向任何外部路径：
-
-```
-~/.dsh/profiles/desktop/vendor/unison777-dsh-usage-hub-0.1.0.tgz
-~/.dsh/profiles/desktop/package.json   →  "@unison777/dsh-usage-hub": "file:vendor/…tgz"
-~/.dsh/profiles/desktop/node_modules/@unison777/dsh-usage-hub/   ← 解包出来的真实目录
+```bash
+dsh plugin --profile desktop add @unison777/dsh-usage-hub
 ```
 
-改完源码要同步进去，一条命令搞定（打包 → 覆盖 node_modules → 校正 profile 清单与 lockfile）：
+### 方式三：本地目录
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\deploy-local.ps1
+```bash
+git clone https://github.com/unison777/dsh-usage-hub.git
+dsh plugin --profile desktop add ./dsh-usage-hub
 ```
 
-### C. 开发时直接链源码（可选，只适合调试）
+### 它做了什么
 
-```powershell
-# 不想每次部署时，可以让 pnpm 直接链到源码目录；
-# 代价是这个 profile 会依赖源码所在路径。
-# 在 DSH 里调用 plugin_manager：
-#   install_bundle  target = "file:<本仓库绝对路径>"
-```
+1. 把包装进目标 profile 的 `node_modules`；
+2. 读包里的 `dsh.bundle.patch`（本仓库的 `cordis.patch.yml`），把插件挂进插件树；
+3. 把包名登记进 profile `package.json` 的 `dsh.profile.bundles`。
+
+宿主半就是 `index.js`，客户端半由 `dsh.client` 声明——不需要改任何全局配置。
+包的 `package.json` 里没有任何绝对路径，所以 clone 到哪、装在哪个盘都没关系。
+
+### 卸载
+
+在 **设置 → 插件** 里停用或移除该 bundle；或者从 profile 的 `package.json` 里
+删掉这条依赖与 `dsh.profile.bundles` 中对应的包名，再重新安装一次。
 
 ## 排错
 
@@ -121,6 +122,10 @@ npm run preview        # 打开 test/harness.html 离线预览面板（样例数
 
 `npm run preview` 会起一个只读静态服务（`http://127.0.0.1:8791/test/harness.html`），
 用真实 React 渲染 `client.js`，不用装进 DSH 就能调样式；加 `?theme=light` 看浅色。
+
+Windows 上想把源码反复装进本机 profile，可以用 `scripts\deploy-local.ps1`：
+打包成 tarball → 覆盖 profile 里的安装副本 → 同步清单与 lockfile，幂等且会校验
+`client.js` 与源码一致；`-Profile` 可指向别的 profile。
 
 联调真实接口：
 
