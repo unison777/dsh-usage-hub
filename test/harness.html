@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>dsh-usage-hub · 面板离线预览</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0f1216; color: #e8eef2;
+    font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Microsoft YaHei", sans-serif; }
+  #stage { padding: 24px; display: flex; gap: 16px; align-items: flex-start; }
+  .fake-sidebar { width: 208px; height: 520px; border: 1px dashed #2b3339; border-radius: 12px;
+    padding: 10px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .hint { opacity: .62; font-size: 12px; max-width: 300px; line-height: 1.7; }
+  .hint code { background: #1c2126; padding: 1px 4px; border-radius: 4px; }
+  #root { display: flex; flex-direction: column; gap: 6px; }
+</style>
+</head>
+<body data-ds-dark-theme>
+<div id="stage">
+  <div class="fake-sidebar"><div id="root"></div></div>
+  <div class="hint">
+    <b>离线预览</b>：数据是样例，不访问任何接口。<br>
+    点左下角「用量」按钮打开面板，用来核对样式与排版。<br>
+    页面参数：<code>?theme=light</code> 可切浅色。
+  </div>
+</div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script>
+  if (new URLSearchParams(location.search).get('theme') === 'light') {
+    document.body.removeAttribute('data-ds-dark-theme')
+    document.body.style.background = '#f4f6f8'
+  }
+
+  window.__sample = {
+    capturedAt: new Date().toISOString(),
+    entries: [
+      {
+        provider: 'opencode-go', displayName: 'OpenCode Go', kind: 'percent',
+        ok: true, stale: false, error: null,
+        windows: [
+          { id: 'rolling', label: '5 小时', percent: 1, status: 'ok', resetsAt: '2026-11-06T08:36:54.000Z' },
+          { id: 'weekly', label: '本周', percent: 44, status: 'ok', resetsAt: '2026-11-09T00:00:00.000Z' },
+          { id: 'monthly', label: '本月', percent: 22, status: 'ok', resetsAt: '2026-12-02T13:46:36.000Z' }
+        ]
+      },
+      {
+        provider: 'commandcode', displayName: 'CommandCode GOAT', kind: 'credits',
+        ok: true, stale: false, error: null,
+        plan: { id: 'individual-goat', label: 'GOAT', monthlyLimit: 70 },
+        balance: { remaining: 66.61, limit: 70, currency: 'USD' },
+        windows: [
+          { id: 'fiveHour', label: '5 小时', used: 0.46, cap: 14, percent: 3.3, resetsAt: '2026-11-06T08:51:16.826Z', exceeded: false },
+          { id: 'weekly', label: '本周', used: 3.39, cap: 35, percent: 9.7, resetsAt: '2026-11-12T06:17:29.429Z', exceeded: false },
+          { id: 'monthly', label: '本月', used: 3.39, cap: 70, percent: 4.8, resetsAt: '2026-12-05T04:57:47.000Z', exceeded: false }
+        ],
+        summary: { requests: 492, successRate: 100, cost: 3.39, tokens: 22894175, periodStart: '2026-11-05T04:57:47.000Z' },
+        periodEnd: '2026-12-05T04:57:47.000Z',
+        account: { name: 'unison777', email: 'unison777@foxmail.com' }
+      }
+    ]
+  }
+
+  window.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ ok: true, value: window.__sample })
+  })
+
+  window.__ModuleLoader__ = {
+    load({ id, factory }) {
+      window.__pluginId = id
+      window.__plugin = factory(name => window.React)
+    }
+  }
+</script>
+<script src="./../client.js"></script>
+<script>
+  const slots = {
+    inject(name, cb) { window.__slotName = name; cb() },
+    register(options, Component) { window.__slotOptions = options; window.__Component = Component; return () => {} }
+  }
+  const ctx = { get: name => (name === 'slots' ? slots : undefined), effect: fn => { fn() } }
+  window.__plugin.apply(ctx)
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    React.createElement(window.__Component, { wide: true })
+  )
+
+  window.__run = async () => {
+    document.querySelector('.uh-btn').click()
+    await new Promise(resolve => setTimeout(resolve, 700))
+    const panel = document.querySelector('.uh-panel')
+    return {
+      pluginId: window.__pluginId,
+      slotName: window.__slotName,
+      registeredId: window.__slotOptions && window.__slotOptions.id,
+      open: panel && panel.getAttribute('data-open'),
+      theme: panel && panel.getAttribute('data-uh-theme'),
+      buttonText: (document.querySelector('.uh-btn') || {}).textContent,
+      rows: document.querySelectorAll('.uh-panel .uh-row').length,
+      fills: document.querySelectorAll('.uh-panel .uh-fill').length,
+      text: panel && panel.innerText
+    }
+  }
+</script>
+</body>
+</html>

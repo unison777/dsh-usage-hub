@@ -1,0 +1,7 @@
+# dsh-usage-hub 的 bundle patch。
+#
+# 这里是「bundle 层」，用 insert 往插件树里加一行；装好之后由 profile 的
+# package.json（dsh.profile.bundles）决定它是否生效。
+- insert:
+    - id: dsh-usage-hub
+      name: '@unison777/dsh-usage-hub'

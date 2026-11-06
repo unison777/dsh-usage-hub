@@ -1,0 +1,57 @@
+{
+  "name": "@unison777/dsh-usage-hub",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 用量面板：侧边栏一键查看 OpenCode Go 与 CommandCode GOAT 的 5 小时 / 每周 / 每月额度、余额与本周期统计。",
+  "icon": "./icon.svg",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "lib",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "preview": "node scripts/serve.js 8791"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "deepseek-harness",
+    "cordis",
+    "usage",
+    "quota",
+    "balance",
+    "opencode-go",
+    "commandcode"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "unison777"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    }
+  }
+}
