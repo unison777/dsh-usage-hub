@@ -62,43 +62,14 @@ DeepSeek Harness（DSH）的**订阅用量面板**：侧边栏底部一个「用
 
 ## 安装
 
-前置：一个带 web 服务的 DSH（桌面版，或 `dsh web`）。装完刷新页面（Ctrl/Cmd+R）
-让客户端半生效；宿主半由 DSH 的 Loader 自动重载。
-
-### 方式一：从 GitHub（推荐）
+前置：一个带 web 服务的 DSH（桌面版，或 `dsh web`）。
 
 ```bash
 dsh plugin --profile desktop add github:unison777/dsh-usage-hub
 ```
 
-没有 CLI 的话，在 DSH 的 **设置 → 插件** 里用同一个 spec 安装。
-
-### 方式二：从 npm（发布后）
-
-```bash
-dsh plugin --profile desktop add @unison777/dsh-usage-hub
-```
-
-### 方式三：本地目录
-
-```bash
-git clone https://github.com/unison777/dsh-usage-hub.git
-dsh plugin --profile desktop add ./dsh-usage-hub
-```
-
-### 它做了什么
-
-1. 把包装进目标 profile 的 `node_modules`；
-2. 读包里的 `dsh.bundle.patch`（本仓库的 `cordis.patch.yml`），把插件挂进插件树；
-3. 把包名登记进 profile `package.json` 的 `dsh.profile.bundles`。
-
-宿主半就是 `index.js`，客户端半由 `dsh.client` 声明——不需要改任何全局配置。
-包的 `package.json` 里没有任何绝对路径，所以 clone 到哪、装在哪个盘都没关系。
-
-### 卸载
-
-在 **设置 → 插件** 里停用或移除该 bundle；或者从 profile 的 `package.json` 里
-删掉这条依赖与 `dsh.profile.bundles` 中对应的包名，再重新安装一次。
+没有 CLI 的话，在 DSH 的 **设置 → 插件** 里用同一个 spec 安装。装完刷新页面
+（Ctrl/Cmd+R）让客户端半生效；宿主半由 DSH 的 Loader 自动重载。
 
 ## 排错
 
