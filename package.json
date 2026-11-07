@@ -1,6 +1,6 @@
 {
   "name": "@unison777/dsh-usage-hub",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DeepSeek Harness 用量面板：侧边栏一键查看 OpenCode Go 与 CommandCode GOAT 的 5 小时 / 每周 / 每月额度、余额与本周期统计。",
   "icon": "./icon.svg",
   "main": "./index.js",

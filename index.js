@@ -244,9 +244,16 @@ module.exports.apply = function apply(ctx) {
   }
 
   // ── 同源只读路由 ────────────────────────────────────────────────────────
-  const webServer = ctx.get('webServer')
-  if (webServer && typeof webServer.register === 'function') {
-    ctx.effect(() => webServer.register({
+  // ⚠️ 冷启动时插件可能比 webServer 服务先被 apply，这时 ctx.get('webServer')
+  // 拿到的是 undefined，注册会静默跳过（客户端就只看到 404）。
+  // 用 ctx.inject 等服务就绪再注册——DSH 官方插件也是这个写法。
+  ctx.inject(['webServer'], webCtx => {
+    const webServer = webCtx.webServer
+    if (!webServer || typeof webServer.register !== 'function') {
+      console.warn('[dsh-usage-hub] webServer 没有 register 方法，界面将取不到数据')
+      return
+    }
+    webCtx.effect(() => webServer.register({
       kind: 'exact',
       path: ROUTE_PATH,
       handler: async (request, response) => {
@@ -285,34 +292,32 @@ module.exports.apply = function apply(ctx) {
         }
       },
     }), 'dsh-usage-hub: route')
-  } else {
-    console.warn('[dsh-usage-hub] webServer 不可用，界面将取不到数据')
-  }
+  })
 
   // ── 给 agent 的只读工具（可选，失败不影响界面） ──────────────────────────
-  try {
-    const tools = ctx.get('tools')
-    if (tools && typeof tools.register === 'function') {
+  ctx.inject(['tools'], toolCtx => {
+    try {
+      const tools = toolCtx.tools
+      if (!tools || typeof tools.register !== 'function') return
       const { defineTool } = require('@deepseek-ai/dsh-tools')
-      if (typeof defineTool === 'function') {
-        tools.register(defineTool({
-          name: 'usage_report',
-          description: '查询 OpenCode Go 与 CommandCode GOAT 的订阅用量：5 小时 / 每周 / 每月窗口、剩余额度、重置时间，以及本计费周期的请求数与花费。',
-          parameters: {},
-          output: {
-            schema: { type: 'string' },
-            render: (_args, value) => [{ type: 'text', text: value }],
-          },
-          async execute() {
-            const value = await snapshot({})
-            return formatSnapshot(value)
-          },
-        }))
-      }
+      if (typeof defineTool !== 'function') return
+      tools.register(defineTool({
+        name: 'usage_report',
+        description: '查询 OpenCode Go 与 CommandCode GOAT 的订阅用量：5 小时 / 每周 / 每月窗口、剩余额度、重置时间，以及本计费周期的请求数与花费。',
+        parameters: {},
+        output: {
+          schema: { type: 'string' },
+          render: (_args, value) => [{ type: 'text', text: value }],
+        },
+        async execute() {
+          const value = await snapshot({})
+          return formatSnapshot(value)
+        },
+      }))
+    } catch (error) {
+      console.warn('[dsh-usage-hub] 工具注册跳过：' + describeError(error))
     }
-  } catch (error) {
-    console.warn('[dsh-usage-hub] 工具注册跳过：' + describeError(error))
-  }
+  })
 
   return { snapshot }
 }

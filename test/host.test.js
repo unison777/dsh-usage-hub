@@ -40,6 +40,14 @@ function fakeContext() {
       }
       return undefined
     },
+    // 插件用 ctx.inject 等服务就绪（冷启动时 webServer 可能还没出现），这里同步回调。
+    inject(_services, callback) {
+      callback({
+        webServer: { register: () => () => {} },
+        get: () => undefined,
+        effect: fn => { fn() },
+      })
+    },
     effect() {},
   }
 }
